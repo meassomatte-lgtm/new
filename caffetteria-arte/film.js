@@ -1,6 +1,7 @@
 // Caffetteria d'Arte: pure function of time. window.seek(t) paints frame t (see lib/motion.js).
 // Timing is in beats (u) on the measured grid (96 bpm, 32 beats = 20 s); docs/shotlist.md is the plan.
 import * as M from './lib/motion.js';
+import * as AERIAL from './aerial.js';
 
 const { W, H, FORMAT, E, prog, lerp, clamp, springU, springKeys, SPRING, wobble, font, layout, glyph, text, fill, cover, rrect, hash01, mulberry32 } = M;
 
@@ -61,149 +62,101 @@ function polaroid(ctx, img, x, y, w, h, rot, { pad = 22, bottom = 90, fx = 0.5, 
   return { fw, fh };
 }
 
-// ================================================================ map world (built once, seeded)
-const MAP = { blocks: [], parks: [], river: [], roads: [], marconi: [] };
+// ================================================================ aerial map (aerial.js, painted once)
+const CAFE_W = [Math.cos(AERIAL.ANG) * 0 - Math.sin(AERIAL.ANG) * -19, Math.sin(AERIAL.ANG) * 0 + Math.cos(AERIAL.ANG) * -19];
+const LV = {};
 function buildMap() {
-  const R = mulberry32(40);
-  // river Noncello: meander from north-west to south-east, west of the cafe
-  for (let i = 0; i <= 60; i++) {
-    const k = i / 60;
-    MAP.river.push([lerp(-1500, 900, k) + Math.sin(k * 9) * 180 - 650, lerp(-2600, 2600, k) + Math.cos(k * 7) * 90]);
-  }
-  // Viale Marconi through the cafe at (0,0), gently bent
-  for (let i = 0; i <= 30; i++) { const k = i / 30; const x = lerp(-1900, 1900, k); MAP.marconi.push([x, -x * 0.32 + Math.sin(k * 3) * 40 - 40 * Math.sin(1.5)]); }
-  const off = MAP.marconi[15][1]; MAP.marconi.forEach((p) => (p[1] -= off));
-  // other roads: a ring and radials around the centre (stylised, not a survey)
-  const ring = []; for (let i = 0; i <= 48; i++) { const a = (i / 48) * M.TAU; ring.push([-700 + Math.cos(a) * 1250, -500 + Math.sin(a) * 1050]); }
-  MAP.roads.push({ pts: ring, w: 34 });
-  for (let j = 0; j < 7; j++) {
-    const a = (j / 7) * M.TAU + 0.3, pts = [];
-    for (let i = 0; i <= 12; i++) { const r = 200 + i * 230; pts.push([-700 + Math.cos(a) * r + Math.sin(i) * 30, -500 + Math.sin(a) * r]); }
-    MAP.roads.push({ pts, w: 24 });
-  }
-  for (let j = -6; j <= 6; j++) { if (j === 0) continue; MAP.roads.push({ pts: [[-2600, j * 420 + 2600 * 0.32], [2600, j * 420 - 2600 * 0.32]], w: 14 }); }
-  for (let j = -6; j <= 6; j++) MAP.roads.push({ pts: [[j * 400 - 900, -2800], [j * 400 + 900, 2800]], w: 14 });
-  // parks
-  MAP.parks.push([-1150, -150, 260], [600, 900, 220], [-200, -1400, 300], [1300, -700, 180]);
-  // blocks: a grid aligned with Marconi, skipping roads, river and parks
-  const ang = Math.atan2(-0.32, 1), ca = Math.cos(ang), sa = Math.sin(ang);
-  const near = (pts, x, y, d) => {
-    for (let i = 1; i < pts.length; i++) {
-      const [ax, ay] = pts[i - 1], [bx, by] = pts[i];
-      const vx = bx - ax, vy = by - ay, l = vx * vx + vy * vy;
-      const t = clamp(((x - ax) * vx + (y - ay) * vy) / l);
-      if (Math.hypot(ax + vx * t - x, ay + vy * t - y) < d) return true;
-    }
-    return false;
-  };
-  const step = 105;
-  for (let gx = -26; gx <= 26; gx++) for (let gy = -26; gy <= 26; gy++) {
-    const lx = gx * step, ly = gy * step;
-    const x = lx * ca - ly * sa, y = lx * sa + ly * ca;
-    if (Math.hypot(x, y) > 2900) continue;
-    if (near(MAP.river, x, y, 140) || near(MAP.marconi, x, y, 75)) continue;
-    if (MAP.parks.some(([px, py, pr]) => Math.hypot(x - px, y - py) < pr + 30)) continue;
-    if (MAP.roads.some((r) => near(r.pts, x, y, r.w + 40))) continue;
-    const n = 1 + Math.floor(R() * 3);
-    for (let k = 0; k < n; k++) {
-      const w = 30 + R() * 45, h = 30 + R() * 45;
-      MAP.blocks.push({ x: x + (R() - 0.5) * 40, y: y + (R() - 0.5) * 40, w, h, a: ang, c: R() < 0.5 ? C.block : C.block2 });
-    }
-  }
-}
-function stroke(ctx, pts, w, color, cam) {
-  ctx.beginPath();
-  pts.forEach(([x, y], i) => { const X = cam.x(x), Y = cam.y(y); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
-  ctx.lineWidth = Math.max(w * cam.s, 1.5); ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+  AERIAL.buildWorld();
+  LV.city = AERIAL.paintLevel(-200, -150, 4200, 6144);
+  LV.mid = AERIAL.paintLevel(CAFE_W[0], CAFE_W[1], 1200, 6144);
+  LV.block = AERIAL.paintLevel(CAFE_W[0], CAFE_W[1], 420, 6144);
 }
 
 // ---------------------------------------------------------------- S1 zoom dall'alto   (u 0..6)
 const PIN = { x: W / 2, y: H * 0.46 };
 function camAt(u) {
-  // log-space dolly: constant-rate descent from the whole town to the block
-  const p = E.inOutSine(prog(u, -0.6, 5.0));
-  const s = 0.2 * (2.6 / 0.2) ** p;
-  const q = E.inOutCubic(prog(u, 0, 4.6));
-  const cx = lerp(-650, 0, q), cy = lerp(-420, 0, q);
-  const rot = lerp(-0.25, 0.31, E.inOutCubic(prog(u, 0, 5)));   // Marconi turns to horizontal
+  // log-space dolly: constant-rate descent from the whole town to the street
+  const p = E.inOutSine(prog(u, -0.8, 5.0));
+  const s = 0.26 * (8 / 0.26) ** p;
+  const q = E.inOutCubic(prog(u, 0, 4.4));
+  const cx = lerp(-350, CAFE_W[0], q), cy = lerp(-250, CAFE_W[1], q);
+  const rot = lerp(-AERIAL.ANG - 0.55, -AERIAL.ANG, E.inOutCubic(prog(u, 0, 5)));   // the avenue turns horizontal
   return { s, cx, cy, rot };
 }
-function sceneMap(ctx, u) {
-  fill(ctx, C.paper);
-  const c = camAt(u);
-  const cr = Math.cos(c.rot), sr = Math.sin(c.rot);
-  const cam = {
-    s: c.s,
-    x: (x) => 0, y: (y) => 0,
-  };
-  // world -> screen with rotation about the camera centre
-  const tx = (x, y) => PIN.x + ((x - c.cx) * cr - (y - c.cy) * sr) * c.s;
-  const ty = (x, y) => PIN.y + ((x - c.cx) * sr + (y - c.cy) * cr) * c.s;
-  ctx.save();
+function drawLevel(ctx, L, c, alpha) {
+  if (alpha <= 0) return;
+  const k = L.cv.width / (2 * L.half);
+  ctx.save(); ctx.globalAlpha = alpha;
   ctx.translate(PIN.x, PIN.y); ctx.rotate(c.rot); ctx.scale(c.s, c.s); ctx.translate(-c.cx, -c.cy);
-  const view = Math.hypot(W, H) / c.s / 2 + 120;
-  const vis = (x, y) => Math.abs(x - c.cx) < view && Math.abs(y - c.cy) < view;
-  const lw = (w) => Math.max(w, 1.6 / c.s);
-  // parks
-  ctx.fillStyle = C.park;
-  MAP.parks.forEach(([x, y, r]) => { ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.8, 0.4, 0, M.TAU); ctx.fill(); });
-  // blocks
-  MAP.blocks.forEach((b) => {
-    if (!vis(b.x, b.y)) return;
-    ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a); ctx.fillStyle = b.c;
-    ctx.beginPath(); ctx.roundRect(-b.w / 2, -b.h / 2, b.w, b.h, 4); ctx.fill(); ctx.restore();
-  });
-  const path = (pts) => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); };
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  // river
-  path(MAP.river); ctx.strokeStyle = C.river; ctx.lineWidth = lw(95); ctx.stroke();
-  // roads: casing then fill
-  MAP.roads.forEach((r) => { path(r.pts); ctx.strokeStyle = C.block2; ctx.lineWidth = lw(r.w + 8); ctx.stroke(); });
-  MAP.roads.forEach((r) => { path(r.pts); ctx.strokeStyle = C.road; ctx.lineWidth = lw(r.w); ctx.stroke(); });
-  // Viale Marconi: drawn on as the camera arrives, in the accent
-  path(MAP.marconi); ctx.strokeStyle = C.road; ctx.lineWidth = lw(48); ctx.stroke();
-  const d = ease01(u, 1.6, 3.6, E.inOutCubic);
-  if (d > 0) {
-    ctx.save();
-    const len = 3900; ctx.setLineDash([len * d, len]); ctx.lineDashOffset = 0;
-    path(MAP.marconi); ctx.strokeStyle = C.accent; ctx.lineWidth = lw(22); ctx.stroke();
-    ctx.restore();
-  }
+  ctx.imageSmoothingQuality = 'high';
+  ctx.filter = 'saturate(0.78) contrast(1.06) brightness(1.02)';
+  ctx.drawImage(L.cv, L.cx - L.half, L.cy - L.half, 2 * L.half, 2 * L.half);
   ctx.restore();
-
-  // "PORDENONE": huge, sits over the town, lifts away as we descend
-  const sz = 190;
-  const fIn = springU(u, -0.15, SPRING.snappy), fOut = E.inBack(prog(u, 2.0, 2.7), 1.3);
-  if (fOut < 1) {
-    const L = layout(ctx, 'PORDENONE', font(sz * 0.62, 800, UI), sz * 0.08);
-    const y0 = H * 0.27 - fOut * 900;
-    ctx.fillStyle = C.coffee;
-    L.glyphs.forEach((g, j) => {
-      const k = springU(u, -0.2 + j * 0.035, SPRING.bouncy);
-      if (k <= 0) return;
-      glyph(ctx, g.ch, W / 2 - L.width / 2 + g.cx, y0 + (1 - k) * 80, font(sz * 0.62, 800, UI), C.coffee, 1, k);
-    });
-    const t2 = ease01(u, 0.5, 1.3);
-    text(ctx, 'Friuli Venezia Giulia', W / 2, y0 + 70, font(44, 500, UI), `rgba(59,36,24,${0.75 * t2})`, 'center', 6);
+}
+function sceneMap(ctx, u) {
+  fill(ctx, '#7C7F5C');
+  const c = camAt(u);
+  const toMid = E.inOutSine(prog(c.s, 0.95, 1.2)), toBlock = E.inOutSine(prog(c.s, 2.6, 3.1));
+  if (toMid < 1) drawLevel(ctx, LV.city, c, 1);
+  if (toBlock < 1) drawLevel(ctx, LV.mid, c, toMid);
+  drawLevel(ctx, LV.block, c, toBlock);
+  // altitude haze + soft vignette
+  const haze = clamp(1 - Math.log(c.s / 0.26) / Math.log(8 / 0.26) * 1.6);
+  if (haze > 0) { ctx.fillStyle = `rgba(214,224,232,${0.32 * haze})`; ctx.fillRect(0, 0, W, H); }
+  const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.75);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(10,8,5,0.38)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  // clouds we fall through at the start
+  const cl = prog(u, -0.2, 2.4);
+  if (cl < 1) {
+    const R = mulberry32(12);
+    for (let i = 0; i < 9; i++) {
+      const ax = R() * W, ay = R() * H, r0 = 260 + R() * 320;
+      const dx = ax - W / 2, dy = ay - H / 2;
+      const push = 1 + E.inCubic(cl) * 2.2;
+      const x = W / 2 + dx * push, y = H / 2 + dy * push, r = r0 * (1 + cl * 1.5);
+      const a = 0.85 * (1 - E.inQuad(cl));
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(0.6, `rgba(250,250,252,${a * 0.6})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
   }
-  // street label along Marconi (horizontal by the end of the turn)
-  const lab = ease01(u, 2.5, 3.2);
+  const shadowText = (fn) => { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 4; fn(); ctx.restore(); };
+  // "PORDENONE": over the town, lifts away as we descend
+  const sz = 118;
+  const fOut = E.inBack(prog(u, 2.0, 2.7), 1.3);
+  if (fOut < 1) {
+    const f = font(sz, 800, UI);
+    const L = layout(ctx, 'PORDENONE', f, sz * 0.12);
+    const y0 = H * 0.27 - fOut * 900;
+    shadowText(() => L.glyphs.forEach((g, j) => {
+      const k = springU(u, -0.2 + j * 0.035, SPRING.bouncy);
+      if (k > 0) glyph(ctx, g.ch, W / 2 - L.width / 2 + g.cx, y0 + (1 - k) * 80, f, '#FFFFFF', 1, k);
+    }));
+    const t2 = ease01(u, 0.5, 1.3);
+    shadowText(() => text(ctx, 'FRIULI VENEZIA GIULIA', W / 2, y0 + 70, font(36, 600, UI), `rgba(255,255,255,${0.9 * t2})`, 'center', 8));
+  }
+  // street label on the avenue, Google-Earth style
+  const lab = ease01(u, 2.6, 3.3);
   if (lab > 0) {
-    const ang = Math.atan2(-0.32, 1) + c.rot;
-    const lx = tx(-320, 0.32 * 320), ly = ty(-320, 0.32 * 320);
-    ctx.save(); ctx.translate(lx, ly); ctx.rotate(ang); ctx.globalAlpha = lab;
-    text(ctx, 'Viale Marconi', 0, -38 - (1 - lab) * 20, font(54, 700, UI), C.coffee, 'center', 2);
+    const ang = AERIAL.ANG + c.rot;
+    const wx = CAFE_W[0] - Math.cos(AERIAL.ANG) * 60, wy = CAFE_W[1] - Math.sin(AERIAL.ANG) * 60;
+    const dx = wx - c.cx, dy = wy - c.cy;
+    const lx = PIN.x + (dx * Math.cos(c.rot) - dy * Math.sin(c.rot)) * c.s;
+    const ly = PIN.y + (dx * Math.sin(c.rot) + dy * Math.cos(c.rot)) * c.s;
+    ctx.save(); ctx.translate(lx, ly + 150); ctx.rotate(ang); ctx.globalAlpha = lab;
+    shadowText(() => text(ctx, 'Viale Marconi', 0, -(1 - lab) * 20, font(50, 700, UI), '#FFFFFF', 'center', 2));
     ctx.restore();
   }
   // pin: falls on 4.5, lands on 5, squashes
-  const fallP = prog(u, 4.5, 5);
   if (u >= 4.5) {
+    const fallP = prog(u, 4.5, 5);
     const yDrop = u < 5 ? -700 * (1 - E.inQuad(fallP)) : 0;
     const sq = u >= 5 ? 0.18 * wobble(u - 5, 2.5, 4) : 0;
     drawPin(ctx, PIN.x, PIN.y + yDrop, 1 + sq, 1 - sq);
-    if (u >= 5) { // ground ripple
+    if (u >= 5) {
       const r = ease01(u, 5, 6, E.outCubic);
-      ctx.save(); ctx.globalAlpha = 1 - r; ctx.strokeStyle = C.accent; ctx.lineWidth = 6;
+      ctx.save(); ctx.globalAlpha = 1 - r; ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 6;
       ctx.beginPath(); ctx.ellipse(PIN.x, PIN.y, 40 + r * 170, (40 + r * 170) * 0.35, 0, 0, M.TAU); ctx.stroke(); ctx.restore();
     }
   }
@@ -212,7 +165,7 @@ function sceneMap(ctx, u) {
   if (ac > 0) {
     const w = 640, h = 150, x = W / 2 - w / 2, y = PIN.y + 90 + (1 - ac) * 60;
     ctx.save(); ctx.globalAlpha = clamp(ac * 2);
-    ctx.shadowColor = 'rgba(40,20,5,0.25)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 12;
+    ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 12;
     rrect(ctx, x, y, w, h, 28); ctx.fillStyle = C.coffee; ctx.fill(); ctx.shadowColor = 'transparent';
     text(ctx, 'Caffetteria d’Arte', W / 2, y + 66, font(52, 700, DISPLAY), C.cream, 'center');
     text(ctx, 'VIALE MARCONI 40', W / 2, y + 118, font(32, 600, UI), C.accent, 'center', 5);
