@@ -44,3 +44,6 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
   disegnato; personaggi in codice solo se molto curati. Sopra la clip: barra di ricerca che "scrive" la domanda.
 - Clip da Pinterest = solo segnaposto (diritti ignoti). Per il cliente: girarla o usare stock con licenza.
   ElevenLabs video richiede piano a pagamento.
+- Effetti sonori: l'utente NON vuole piatti/crash ("scing"), boing, pop, campanelle, tastiera. Pochi suoni e morbidi:
+  thud bassi leggeri sui titoli, sub morbido sui cambi di sezione, whoosh bassi (180->900 Hz, gain ~0.14).
+  Il resto lo aggiunge lui in post-produzione.

@@ -10,28 +10,20 @@ const ITAL = 'Display', UI = 'UI', HEAVY = 'Heavy';
 // cut points (beats), from the VO word onsets
 const CUT = { logo: 15.0, carb: 17.9, pol: 20.5, frit: 22.7, forno: 25.0, ris: 26.6, mare: 28.2, coll: 30.6, end: 35.9 };
 
+// Sound: sober and sparse (user asked for fewer, softer effects; no cymbals, no cartoon sounds)
 const HITS = [
-  [0.4, 'PORDENONE', 'thud'],
-  [2.4, 'pausa pranzo', 'tick'],
-  [4.3, 'la solita domanda', 'whoosh', { len: 0.3 }],
-  [4.7, 'DOVE PRANZO', 'thud'],
-  [4.6, 'search bar', 'pop', { pitch: 'C6' }],
-  [4.9, 'typing', 'type', { n: 14, len: 1.0 }],
-  [6.5, 'OGGI?', 'boing', { pitch: 'C5', to: 'G5' }],
-  [9.0, 'VARIETA', 'thud'],
-  [10.5, 'more ?', 'pop', { pitch: 'E6' }], [11.1, 'more ?', 'pop', { pitch: 'G6' }],
-  [11.7, 'menu pill', 'click'],
-  [15.0, 'logo', 'impact'],
-  [17.9, '01', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
-  [20.5, '02', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
-  [22.7, '03', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
-  [25.0, '04', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
-  [26.6, '05', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
-  [28.2, '06', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
-  [30.6, 'collage', 'impact'],
-  [33.4, 'address', 'click'],
-  [35.9, 'end', 'whoosh', { len: 0.5 }],
-  [36.3, 'logo', 'bell', { pitch: 'G6' }],
+  [0.4, 'PORDENONE', 'thud', { gain: 0.22, pitch: 110, to: 45 }],
+  [4.7, 'DOVE PRANZO', 'thud', { gain: 0.18, pitch: 110, to: 45 }],
+  [9.0, 'VARIETA', 'thud', { gain: 0.18, pitch: 110, to: 45 }],
+  [15.0, 'logo', 'sub', { len: 1.4, gain: 0.4 }],
+  [17.9, '01', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [20.5, '02', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [22.7, '03', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [25.0, '04', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [26.6, '05', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [28.2, '06', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [30.6, 'collage', 'sub', { len: 1.2, gain: 0.35 }],
+  [35.9, 'end', 'whoosh', { len: 0.8, from: 150, to: 700, gain: 0.12 }],
 ];
 
 // ================================================================ type + graphics kit (as v3)
