@@ -15,6 +15,8 @@ const HITS = [
   [2.4, 'pausa pranzo', 'tick'],
   [4.3, 'la solita domanda', 'whoosh', { len: 0.3 }],
   [4.7, 'DOVE PRANZO', 'thud'],
+  [4.6, 'search bar', 'pop', { pitch: 'C6' }],
+  [4.9, 'typing', 'type', { n: 14, len: 1.0 }],
   [6.5, 'OGGI?', 'boing', { pitch: 'C5', to: 'G5' }],
   [9.0, 'VARIETA', 'thud'],
   [10.5, 'more ?', 'pop', { pitch: 'E6' }], [11.1, 'more ?', 'pop', { pitch: 'G6' }],
@@ -183,37 +185,77 @@ function qmark(ctx, x, y, size, u, u0, col = C.red) {
   text(ctx, '?', 0, size * 0.36, font(size, 900, HEAVY), col, 'center');
   ctx.restore();
 }
-function sceneQuestion(ctx, u) {
-  bgLight(ctx, u);
-  swoosh(ctx, u, 0, [-40, 760, 300, 560, 760, 900, W + 40, 640], 'rgba(91,58,36,0.35)', 3);
+// reference clip (placeholder: assets/clip, 30 fps, from the user's Pinterest reference) as the opening shot
+const CLIP_N = 288;
+function clipFrame(ctx, IMG, u) {
+  const t = M.TS(u);
+  const i = Math.max(1, Math.min(CLIP_N, Math.floor(t * 30) + 1));
+  const img = IMG['clip' + i];
+  if (!img) { fill(ctx, C.black); return; }
+  const z = 1.0 * (1.12 / 1.0) ** E.inOutSine(prog(u, 0, 15));
+  ctx.save(); ctx.filter = 'saturate(0.92) contrast(1.06)';
+  cover(ctx, img, 0, 0, W, H, { fx: 0.45, fy: 0.5, zoom: z });
+  ctx.restore();
+  // warm grade toward the brand, and darkness behind the type
+  ctx.fillStyle = 'rgba(224,122,43,0.07)'; ctx.fillRect(0, 0, W, H);
+  const g = ctx.createLinearGradient(0, 0, 0, H * 0.48);
+  g.addColorStop(0, 'rgba(10,8,6,0.78)'); g.addColorStop(1, 'rgba(10,8,6,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.48);
+}
+// a search bar that pops out of the phone and types the question
+function searchBar(ctx, u, u0, str, x, y) {
+  const k = springU(u, u0, SPRING.bouncy);
+  if (k <= 0) return;
+  const w = 760, h = 120;
+  ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
+  ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16;
+  rrect(ctx, -w / 2, -h / 2, w, h, h / 2); ctx.fillStyle = C.white; ctx.fill(); ctx.shadowColor = 'transparent';
+  // magnifier
+  ctx.strokeStyle = C.red; ctx.lineWidth = 8; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(-w / 2 + 70, -6, 22, 0, M.TAU); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-w / 2 + 86, 10); ctx.lineTo(-w / 2 + 104, 28); ctx.stroke();
+  // typed text + caret
+  const n = Math.floor(clamp((u - u0 - 0.3) / 1.6) * str.length);
+  const shown = str.slice(0, n);
+  const f = font(46, 600, UI);
+  text(ctx, shown, -w / 2 + 130, 16, f, C.ink, 'left');
+  const L = layout(ctx, shown, f, 0);
+  if (Math.floor(u * 3) % 2 === 0 || n < str.length) { ctx.fillStyle = C.red; ctx.fillRect(-w / 2 + 134 + L.width, -24, 4, 52); }
+  ctx.restore();
+}
+function sceneQuestion(ctx, u, IMG) {
+  clipFrame(ctx, IMG, u);
   const phase = (u0, u1, fn) => {
     if (u < u0 - 0.4 || u >= u1) return;
     const out = E.inBack(prog(u, u1 - 0.4, u1), 1.4);
     ctx.save(); ctx.translate(-out * W, 0); fn(); ctx.restore();
   };
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 24;
   // A: "Pordenone, pausa pranzo."
   phase(0, 4.3, () => {
     const sz = fitHeavy(ctx, 'PORDENONE', W - 160, 210);
     slam(ctx, 'PORDENONE', W / 2, 440, sz, C.red, u, 0.15);
-    rise(ctx, 'pausa pranzo.', W / 2, 560, font(76, 500, ITAL), C.brown, u, 2.2, { align: 'center' });
+    rise(ctx, 'pausa pranzo.', W / 2, 560, font(76, 500, ITAL), C.white, u, 2.2, { align: 'center' });
   });
   // B: "La solita domanda: dove pranzo oggi?"
   phase(4.3, 9.0, () => {
-    pair(ctx, 'La solita domanda:', 'DOVE PRANZO', 420, u, 4.3, { dark: false, max: 190 });
+    pair(ctx, 'La solita domanda:', 'DOVE PRANZO', 420, u, 4.3, { max: 190 });
     const sz = fitHeavy(ctx, 'OGGI?', W - 160, 150);
     slam(ctx, 'OGGI?', W / 2, 590, sz, C.white, u, 6.4, { bar: C.brown });
   });
   // C: "Vuoi tanta varieta... e un menu che non e mai lo stesso?"
   if (u >= 8.6) {
-    pair(ctx, 'Tanta', 'VARIET\u00C0', 430, u, 9.0, { dark: false, max: 260 });
+    const dk = E.inOutCubic(prog(u, 8.6, 9.4));
+    ctx.save(); ctx.shadowColor = 'transparent'; ctx.fillStyle = `rgba(10,8,6,${0.45 * dk})`; ctx.fillRect(0, 0, W, H); ctx.restore();
+    pair(ctx, 'Tanta', 'VARIET\u00C0', 430, u, 9.0, { max: 260 });
     pill(ctx, 'E UN MEN\u00D9 SEMPRE DIVERSO', W / 2, 560, u, 11.6, { size: 34, bg: C.brown });
   }
-  // the diner: rises in, then keeps scratching
-  const k = springU(u, -0.3, SPRING.gentle);
-  person(ctx, u, W / 2 - 40, 1120 + (1 - k) * 900, 1.15);
-  qmark(ctx, 790, 860, 240, u, 6.5);
-  qmark(ctx, 270, 900, 130, u, 10.4, C.brown);
-  qmark(ctx, 900, 1150, 110, u, 11.0, C.brown);
+  ctx.restore();
+  // the search, rising out of the phone in the shot
+  phase(4.0, 9.0, () => searchBar(ctx, u, 4.6, 'dove pranzo oggi?', W / 2, 900));
+  qmark(ctx, 900, 700, 190, u, 6.5);
+  qmark(ctx, 220, 1080, 120, u, 10.4, C.white);
+  qmark(ctx, 900, 1240, 110, u, 11.0, C.red);
 }
 
 // ================================================================ S3 logo   (u 12.6..16)
@@ -344,11 +386,12 @@ M.film({
     carbonara: 'assets/piatti/carbonara.jpg', cotechino: 'assets/piatti/cotechino_polenta_pure.jpg', polenta: 'assets/piatti/polenta_salvia.jpg',
     tegame: 'assets/piatti/cotechino_tegame.jpg', frittura: 'assets/piatti/frittura.jpg', forno: 'assets/piatti/pasta_forno.jpg',
     risotto: 'assets/piatti/risotto.jpg', mare: 'assets/piatti/mare.jpg',
+    ...Object.fromEntries(Array.from({ length: 288 }, (_, i) => ['clip' + (i + 1), `assets/clip/f${String(i + 1).padStart(3, '0')}.jpg`])),
   },
   hits: HITS,
   init() { GRAIN = makeGrain(); LEAVES = makeLeaves(); },
   draw(ctx, u, t, IMG) {
-    const q = () => sceneQuestion(ctx, u), lg = () => sceneLogo(ctx, u, IMG);
+    const q = () => sceneQuestion(ctx, u, IMG), lg = () => sceneLogo(ctx, u, IMG);
     const dish = (i) => () => sceneDish(ctx, u, IMG, i);
     const col = () => sceneCollage(ctx, u, IMG), end = () => sceneEnd(ctx, u, IMG);
     if (u < CUT.logo) whip(ctx, u, CUT.logo, q, lg, 1);

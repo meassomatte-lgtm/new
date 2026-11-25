@@ -40,3 +40,7 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
   titoli evidenziati e bordi foto; bianco/nero solo per fondi e testi secondari. Il rosso del modello non va copiato.
 - Gancio: niente frasi piatte ("stai cercando un pranzo a..."). Meglio una situazione riconoscibile + domanda
   ("Pordenone, pausa pranzo. La solita domanda: dove pranzo oggi?"), con la parola chiave su barra colorata.
+- Apertura: l'utente preferisce una clip reale (persona che cerca sul telefono, volto non visibile) a un personaggio
+  disegnato; personaggi in codice solo se molto curati. Sopra la clip: barra di ricerca che "scrive" la domanda.
+- Clip da Pinterest = solo segnaposto (diritti ignoti). Per il cliente: girarla o usare stock con licenza.
+  ElevenLabs video richiede piano a pagamento.
