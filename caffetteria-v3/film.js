@@ -314,7 +314,7 @@ function sceneColazione(ctx, u, IMG) {
 }
 function scenePranzo(ctx, u, IMG) {
   bgLight(ctx, u);
-  photoCard(ctx, IMG.pranzo, u, 25.8, 29.4, W / 2, 1060, 860, 760, { from: -1, rot: 0.03, fx0: 0.42, fx1: 0.55, fy: 0.6, edge: C.brown });
+  photoCard(ctx, IMG.pranzo, u, 25.8, 29.4, W / 2, 1060, 860, 760, { from: -1, rot: 0.03, fx0: 0.5, fx1: 0.5, fy: 0.5, edge: C.brown });
   pair(ctx, 'A mezzogiorno', 'PRANZO VELOCE', 470, u, 25.9, { dark: false, max: 150 });
   swoosh(ctx, u, 26, [-40, 1500, 300, 1700, 800, 1400, W + 40, 1600], 'rgba(20,20,20,0.35)', 3);
 }
@@ -454,7 +454,7 @@ M.film({
   fonts: [font(100, 900, HEAVY), font(100, 500, ITAL), font(40, 500, UI), font(40, 800, UI), font(100, 500, SERIF)],
   images: {
     logo: 'assets/logo.png', quadro: 'assets/photos/quadro.png', club: 'assets/photos/language_club.png', ig: 'assets/instagram_screenshot.png',
-    colazione: 'assets/ai/colazione.jpg', pranzo: 'assets/ai/pranzo.jpg', aperitivo: 'assets/ai/aperitivo.jpg',
+    colazione: 'assets/ai/colazione.jpg', pranzo: 'assets/piatti/pasta_forno.jpg', aperitivo: 'assets/ai/aperitivo.jpg',
   },
   hits: HITS,
   init() { buildMap(); GRAIN = makeGrain(); LEAVES = makeLeaves(); BEANS = makeBeans(); },
