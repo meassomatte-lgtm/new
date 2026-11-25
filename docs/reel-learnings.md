@@ -36,3 +36,7 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
 - Elenco piatti: un taglio per piatto esattamente sulla parola detta dalla voce (silencedetect -30 dB, 0.1 s),
   card foto + contatore "01 / 06" + nome su due righe (prima riga rossa).
 - Tenere tutto il testo sopra y=1490 (zona pulsanti Instagram in 9:16).
+- Colori: usare SEMPRE i colori del locale (qui arancione #E07A2B + marrone #5B3A24, dal logo) per omino,
+  titoli evidenziati e bordi foto; bianco/nero solo per fondi e testi secondari. Il rosso del modello non va copiato.
+- Gancio: niente frasi piatte ("stai cercando un pranzo a..."). Meglio una situazione riconoscibile + domanda
+  ("Pordenone, pausa pranzo. La solita domanda: dove pranzo oggi?"), con la parola chiave su barra colorata.

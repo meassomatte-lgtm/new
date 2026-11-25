@@ -4,29 +4,32 @@ import * as M from './lib/motion.js';
 
 const { W, H, E, prog, lerp, clamp, springU, SPRING, font, layout, glyph, text, fill, cover, rrect, hash01, mulberry32, wobble } = M;
 
-const C = { black: '#101010', paper: '#ECEAE6', red: '#C8322B', white: '#FFFFFF', ink: '#141414', grey: '#8D8A86', cream: '#F1E8D6', skin: '#E9C3A0', hair: '#2B1D14' };
+const C = { black: '#101010', paper: '#ECEAE6', red: '#E07A2B', brown: '#5B3A24', orangeDark: '#B85E1C', white: '#FFFFFF', ink: '#141414', grey: '#8D8A86', cream: '#F1E8D6', skin: '#E9C3A0', hair: '#2B1D14' };
 const ITAL = 'Display', UI = 'UI', HEAVY = 'Heavy';
 
 // cut points (beats), from the VO word onsets
-const CUT = { q2: 6.4, logo: 12.6, carb: 16.0, pol: 18.7, frit: 20.8, forno: 23.1, ris: 25.0, mare: 26.5, coll: 28.7, end: 34.2 };
+const CUT = { logo: 15.0, carb: 17.9, pol: 20.5, frit: 22.7, forno: 25.0, ris: 26.6, mare: 28.2, coll: 30.6, end: 35.9 };
 
 const HITS = [
-  [0.3, 'scratch', 'tok', { pitch: 'C5' }],
-  [1.6, 'question mark', 'boing', { pitch: 'C5', to: 'G5' }],
-  [6.4, 'VARIETA', 'thud'],
-  [8.8, 'more ?', 'pop', { pitch: 'E6' }], [9.4, 'more ?', 'pop', { pitch: 'G6' }],
-  [10.6, 'menu pill', 'click'],
-  [12.6, 'logo', 'impact'],
-  [16.0, '01', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
-  [18.7, '02', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
-  [20.8, '03', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
-  [23.1, '04', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
-  [25.0, '05', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
-  [26.5, '06', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
-  [28.7, 'collage', 'impact'],
-  [31.6, 'address', 'click'],
-  [34.2, 'end', 'whoosh', { len: 0.5 }],
-  [34.6, 'logo', 'bell', { pitch: 'G6' }],
+  [0.4, 'PORDENONE', 'thud'],
+  [2.4, 'pausa pranzo', 'tick'],
+  [4.3, 'la solita domanda', 'whoosh', { len: 0.3 }],
+  [4.7, 'DOVE PRANZO', 'thud'],
+  [6.5, 'OGGI?', 'boing', { pitch: 'C5', to: 'G5' }],
+  [9.0, 'VARIETA', 'thud'],
+  [10.5, 'more ?', 'pop', { pitch: 'E6' }], [11.1, 'more ?', 'pop', { pitch: 'G6' }],
+  [11.7, 'menu pill', 'click'],
+  [15.0, 'logo', 'impact'],
+  [17.9, '01', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
+  [20.5, '02', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
+  [22.7, '03', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
+  [25.0, '04', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
+  [26.6, '05', 'whoosh', { len: 0.3, from: 600, to: 2400 }],
+  [28.2, '06', 'whoosh', { len: 0.3, from: 2400, to: 600 }],
+  [30.6, 'collage', 'impact'],
+  [33.4, 'address', 'click'],
+  [35.9, 'end', 'whoosh', { len: 0.5 }],
+  [36.3, 'logo', 'bell', { pitch: 'G6' }],
 ];
 
 // ================================================================ type + graphics kit (as v3)
@@ -62,7 +65,7 @@ function pair(ctx, small, big, y, u, u0, { dark = true, bar = false, maxW = W - 
   const sz = fitHeavy(ctx, big, maxW, max);
   const L = layout(ctx, big, font(sz, 900, HEAVY), -0.02 * sz);
   const x0 = align === 'center' ? x - L.width / 2 : x;
-  rise(ctx, small, x0 + 6, y - L.asc - 34, font(smallSize, 500, ITAL), dark ? C.white : C.ink, u, u0);
+  rise(ctx, small, x0 + 6, y - L.asc - 34, font(smallSize, 500, ITAL), dark ? C.white : C.brown, u, u0);
   return slam(ctx, big, x, y, sz, bar ? C.white : C.red, u, u0 + 0.35, { align, bar: bar ? C.red : null });
 }
 function swoosh(ctx, u, u0, pts, color, w = 3, dur = 1.2) {
@@ -110,11 +113,11 @@ function logoDisc(ctx, IMG, x, y, r) {
   if (img) { const s = (2 * r) / (img.width * 0.86); ctx.drawImage(img, -img.width * 0.5 * s, -img.height * 0.5 * s, img.width * s, img.height * s); }
   ctx.restore();
 }
-function card(ctx, img, x, y, w, h, rot, { fx = 0.5, fy = 0.5, zoom = 1, border = 14 } = {}) {
+function card(ctx, img, x, y, w, h, rot, { fx = 0.5, fy = 0.5, zoom = 1, border = 14, edge = C.red } = {}) {
   if (!img) return;
   ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
   ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 30;
-  rrect(ctx, -w / 2 - border, -h / 2 - border, w + 2 * border, h + 2 * border, 34); ctx.fillStyle = C.white; ctx.fill();
+  rrect(ctx, -w / 2 - border, -h / 2 - border, w + 2 * border, h + 2 * border, 34); ctx.fillStyle = edge; ctx.fill();
   ctx.shadowColor = 'transparent';
   cover(ctx, img, -w / 2, -h / 2, w, h, { fx, fy, zoom, radius: 22 });
   ctx.restore();
@@ -140,7 +143,7 @@ function person(ctx, u, cx, cy, s) {
   ctx.fillStyle = C.red;
   ctx.beginPath(); ctx.moveTo(-300, 520); ctx.bezierCurveTo(-300, 300, -200, 230, 0, 225); ctx.bezierCurveTo(200, 230, 300, 300, 300, 520); ctx.closePath(); ctx.fill();
   // collar
-  ctx.fillStyle = '#A82621'; ctx.beginPath(); ctx.ellipse(0, 238, 92, 34, 0, 0, M.TAU); ctx.fill();
+  ctx.fillStyle = C.orangeDark; ctx.beginPath(); ctx.ellipse(0, 238, 92, 34, 0, 0, M.TAU); ctx.fill();
   // neck
   ctx.fillStyle = '#D9AE88'; ctx.fillRect(-42, 150, 84, 90);
   // head (tilts)
@@ -182,42 +185,52 @@ function qmark(ctx, x, y, size, u, u0, col = C.red) {
 }
 function sceneQuestion(ctx, u) {
   bgLight(ctx, u);
-  swoosh(ctx, u, 0, [-40, 760, 300, 560, 760, 900, W + 40, 640], 'rgba(20,20,20,0.3)', 3);
-  // first line, then the second replaces it
-  const out1 = E.inBack(prog(u, 6.0, 6.4), 1.4);
-  if (out1 < 1) {
-    ctx.save(); ctx.translate(-out1 * W, 0);
-    pair(ctx, 'Stai cercando', 'UN PRANZO', 430, u, 0.0, { dark: false, max: 230 });
-    rise(ctx, 'a Pordenone?', W / 2, 540, font(64, 500, ITAL), C.ink, u, 1.6, { align: 'center' });
-    ctx.restore();
-  }
-  if (u >= 6.2) {
-    pair(ctx, 'Tanta', 'VARIETÀ', 430, u, 6.3, { dark: false, max: 260 });
-    pill(ctx, 'E UN MENÙ SEMPRE DIVERSO', W / 2, 560, u, 9.0, { size: 34 });
+  swoosh(ctx, u, 0, [-40, 760, 300, 560, 760, 900, W + 40, 640], 'rgba(91,58,36,0.35)', 3);
+  const phase = (u0, u1, fn) => {
+    if (u < u0 - 0.4 || u >= u1) return;
+    const out = E.inBack(prog(u, u1 - 0.4, u1), 1.4);
+    ctx.save(); ctx.translate(-out * W, 0); fn(); ctx.restore();
+  };
+  // A: "Pordenone, pausa pranzo."
+  phase(0, 4.3, () => {
+    const sz = fitHeavy(ctx, 'PORDENONE', W - 160, 210);
+    slam(ctx, 'PORDENONE', W / 2, 440, sz, C.red, u, 0.15);
+    rise(ctx, 'pausa pranzo.', W / 2, 560, font(76, 500, ITAL), C.brown, u, 2.2, { align: 'center' });
+  });
+  // B: "La solita domanda: dove pranzo oggi?"
+  phase(4.3, 9.0, () => {
+    pair(ctx, 'La solita domanda:', 'DOVE PRANZO', 420, u, 4.3, { dark: false, max: 190 });
+    const sz = fitHeavy(ctx, 'OGGI?', W - 160, 150);
+    slam(ctx, 'OGGI?', W / 2, 590, sz, C.white, u, 6.4, { bar: C.brown });
+  });
+  // C: "Vuoi tanta varieta... e un menu che non e mai lo stesso?"
+  if (u >= 8.6) {
+    pair(ctx, 'Tanta', 'VARIET\u00C0', 430, u, 9.0, { dark: false, max: 260 });
+    pill(ctx, 'E UN MEN\u00D9 SEMPRE DIVERSO', W / 2, 560, u, 11.6, { size: 34, bg: C.brown });
   }
   // the diner: rises in, then keeps scratching
   const k = springU(u, -0.3, SPRING.gentle);
   person(ctx, u, W / 2 - 40, 1120 + (1 - k) * 900, 1.15);
-  qmark(ctx, 790, 860, 240, u, 1.4);
-  qmark(ctx, 270, 900, 130, u, 8.6, C.ink);
-  qmark(ctx, 900, 1150, 110, u, 9.3, C.ink);
+  qmark(ctx, 790, 860, 240, u, 6.5);
+  qmark(ctx, 270, 900, 130, u, 10.4, C.brown);
+  qmark(ctx, 900, 1150, 110, u, 11.0, C.brown);
 }
 
 // ================================================================ S3 logo   (u 12.6..16)
 function sceneLogo(ctx, u, IMG) {
   bgDark(ctx, u);
-  swoosh(ctx, u, 12.5, [-40, 1500, 300, 1100, 800, 1700, W + 40, 1250], 'rgba(255,255,255,0.7)', 3);
-  const k = springU(u, 12.6, SPRING.bouncy);
+  swoosh(ctx, u, 14.9, [-40, 1500, 300, 1100, 800, 1700, W + 40, 1250], 'rgba(255,255,255,0.7)', 3);
+  const k = springU(u, 15.0, SPRING.bouncy);
   if (k > 0) {
     ctx.save(); ctx.translate(W / 2, 680); ctx.rotate((1 - k) * -1.2); ctx.translate(-W / 2, -680);
     ctx.beginPath(); ctx.arc(W / 2, 680, 210 * k + 16, 0, M.TAU); ctx.fillStyle = C.red; ctx.fill();
     logoDisc(ctx, IMG, W / 2, 680, 210 * k);
     ctx.restore();
   }
-  rise(ctx, 'Passa alla', 150, 1030, font(84, 500, ITAL), C.white, u, 12.9);
+  rise(ctx, 'Passa alla', 150, 1030, font(84, 500, ITAL), C.white, u, 15.2);
   const sz = fitHeavy(ctx, 'CAFFETTERIA', W - 160, 200);
-  slam(ctx, 'CAFFETTERIA', W / 2, 1200, sz, C.white, u, 13.3);
-  slam(ctx, 'D’ARTE', W / 2, 1400, sz * 1.15, C.white, u, 13.9, { bar: C.red });
+  slam(ctx, 'CAFFETTERIA', W / 2, 1200, sz, C.white, u, 15.6);
+  slam(ctx, 'D’ARTE', W / 2, 1400, sz * 1.15, C.white, u, 16.1, { bar: C.red });
 }
 
 // ================================================================ S4 the dishes   (u 16..28.7)
@@ -250,19 +263,19 @@ function sceneDish(ctx, u, IMG, i) {
       const kk = springU(u, u0 + 0.25 + j * 0.2, SPRING.snappy);
       if (kk <= 0) return;
       const s = j === 0 ? -1 : 1;
-      card(ctx, IMG[key], cx + s * 240 * kk, cy + 30, 460, 600, s * 0.16 * kk, { fy: 0.6 });
+      card(ctx, IMG[key], cx + s * 240 * kk, cy + 30, 460, 600, s * 0.16 * kk, { fy: 0.6, edge: dark ? C.red : C.brown });
     });
   }
   const z = (d.zoom || 1.04) * (1.12 ** E.inOutSine(drift));
-  card(ctx, IMG[d.img], cx, cy, d.fan ? 560 : 740, d.fan ? 740 : 760, rot, { fx: d.fx || 0.5, fy: d.fy, zoom: z });
+  card(ctx, IMG[d.img], cx, cy, d.fan ? 560 : 740, d.fan ? 740 : 760, rot, { fx: d.fx || 0.5, fy: d.fy, zoom: z, edge: dark ? C.red : C.brown });
   // index pill + name
-  pill(ctx, `${String(i + 1).padStart(2, '0')} / 06`, 190, 300, u, u0 + 0.05, { size: 30, bg: dark ? C.white : C.ink, fg: dark ? C.ink : C.white });
+  pill(ctx, `${String(i + 1).padStart(2, '0')} / 06`, 190, 300, u, u0 + 0.05, { size: 30, bg: dark ? C.red : C.brown, fg: C.white });
   const yName = 1480;
-  rise(ctx, d.small, 96, yName - (d.name.length > 1 ? 250 : 140), font(60, 500, ITAL), dark ? C.white : C.ink, u, u0 + 0.1);
+  rise(ctx, d.small, 96, yName - (d.name.length > 1 ? 250 : 140), font(60, 500, ITAL), dark ? C.white : C.brown, u, u0 + 0.1);
   d.name.forEach((line, j) => {
     const sz = fitHeavy(ctx, line, W - 192, 128);
     const y = yName - (d.name.length - 1 - j) * (sz * 0.95);
-    slam(ctx, line, 96, y, sz, j === 0 ? C.red : (dark ? C.white : C.ink), u, u0 + 0.15 + j * 0.15, { align: 'left' });
+    slam(ctx, line, 96, y, sz, j === 0 ? C.red : (dark ? C.white : C.brown), u, u0 + 0.15 + j * 0.15, { align: 'left' });
   });
 }
 
@@ -272,7 +285,7 @@ function sceneCollage(ctx, u, IMG) {
   fill(ctx, C.black);
   // 2 x 4 mosaic; the camera starts tight on one tile and pulls back to show them all
   const cols = 2, rows = 4, gap = 14, tw = (W - gap * 3) / cols, th = (H - gap * 5) / rows;
-  const p = E.inOutCubic(prog(u, 28.7, 30.6));
+  const p = E.inOutCubic(prog(u, 30.6, 32.4));
   const z = 2.2 * (1 / 2.2) ** p;
   const fx = W * 0.25, fy = th * 1.5 + gap * 2;
   ctx.save(); ctx.translate(lerp(fx, W / 2, p), lerp(fy, H / 2, p)); ctx.scale(z, z); ctx.translate(-lerp(fx, W / 2, p), -lerp(fy, H / 2, p));
@@ -284,28 +297,28 @@ function sceneCollage(ctx, u, IMG) {
   });
   ctx.restore();
   // dark band with the message
-  const bk = E.outQuint(prog(u, 29.2, 29.9));
+  const bk = E.outQuint(prog(u, 31.0, 31.7));
   ctx.fillStyle = `rgba(12,10,8,${0.82 * bk})`; ctx.fillRect(0, 700, W, 520);
-  ctx.fillStyle = C.red; ctx.fillRect(0, 700, W * bk, 8); ctx.fillRect(W * (1 - bk), 1212, W * bk, 8);
-  pair(ctx, 'Un pranzo', 'RICCO DI SAPORE', 1040, u, 29.3, { max: 140 });
-  pill(ctx, 'VIALE MARCONI 40 · PORDENONE', W / 2, 1130, u, 31.6, { size: 32 });
+  ctx.fillStyle = C.red; ctx.fillRect(0, 700, W * bk, 8); ctx.fillStyle = C.brown; ctx.fillRect(W * (1 - bk), 1212, W * bk, 8);
+  pair(ctx, 'Un pranzo', 'RICCO DI SAPORE', 1040, u, 31.1, { max: 140 });
+  pill(ctx, 'VIALE MARCONI 40 · PORDENONE', W / 2, 1130, u, 33.4, { size: 32, bg: C.brown });
 }
 
 // ================================================================ S6 end card   (u 34.2..40)
 function sceneEnd(ctx, u, IMG) {
   bgLight(ctx, u);
-  swoosh(ctx, u, 34.2, [-40, 380, 400, 160, 700, 560, W + 40, 300], 'rgba(20,20,20,0.3)', 3);
-  const k = springU(u, 33.9, SPRING.bouncy);
+  swoosh(ctx, u, 35.9, [-40, 380, 400, 160, 700, 560, W + 40, 300], 'rgba(20,20,20,0.3)', 3);
+  const k = springU(u, 35.6, SPRING.bouncy);
   if (k > 0) {
     ctx.save(); ctx.translate(W / 2, 700); ctx.rotate((1 - k) * 0.8); ctx.translate(-W / 2, -700);
-    ctx.beginPath(); ctx.arc(W / 2, 700, 210 * k + 12, 0, M.TAU); ctx.fillStyle = C.ink; ctx.fill();
+    ctx.beginPath(); ctx.arc(W / 2, 700, 210 * k + 12, 0, M.TAU); ctx.fillStyle = C.brown; ctx.fill();
     logoDisc(ctx, IMG, W / 2, 700, 210 * k);
     ctx.restore();
   }
-  pair(ctx, 'Ti', 'ASPETTIAMO', 1150, u, 34.4, { dark: false, max: 190 });
-  rise(ctx, 'Viale Marconi 40 · Pordenone', W / 2, 1260, font(40, 600, UI), C.ink, u, 35.1, { align: 'center', stagger: 0.008 });
-  rise(ctx, 'Lun–Ven 7:00–20:30  ·  Sab 8:00–15:00', W / 2, 1325, font(34, 500, UI), C.grey, u, 35.4, { align: 'center', stagger: 0.006 });
-  pill(ctx, '@caffetteriadarte', W / 2, 1440, u, 35.8, { size: 38 });
+  pair(ctx, 'Ti', 'ASPETTIAMO', 1150, u, 36.1, { dark: false, max: 190 });
+  rise(ctx, 'Viale Marconi 40 · Pordenone', W / 2, 1260, font(40, 600, UI), C.brown, u, 36.7, { align: 'center', stagger: 0.008 });
+  rise(ctx, 'Lun–Ven 7:00–20:30  ·  Sab 8:00–15:00', W / 2, 1325, font(34, 500, UI), C.grey, u, 37.0, { align: 'center', stagger: 0.006 });
+  pill(ctx, '@caffetteriadarte', W / 2, 1440, u, 37.3, { size: 38 });
 }
 
 // ================================================================ transitions + post
