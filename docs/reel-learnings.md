@@ -28,3 +28,11 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
 ## Vincoli tecnici dell'ambiente
 - Rete: mappe/tiles bloccate; Pinterest e elevenlabsusercontent.com consentiti su richiesta.
 - ElevenLabs piano gratuito: code occupate frequenti, limite giornaliero immagini; immagini escono 16:9.
+
+## Reel "Pranzo" (stesso stile v3, stessa voce)
+- Brief dell'utente: domanda iniziale + personaggio stilizzato che si gratta la testa con "?", poi logo, poi elenco piatti animato.
+- Foto vere dei piatti fornite dall'utente: preferirle sempre alle immagini AI.
+- Nomi piatti: solo quelli riconoscibili con certezza; chiedere conferma al cliente.
+- Elenco piatti: un taglio per piatto esattamente sulla parola detta dalla voce (silencedetect -30 dB, 0.1 s),
+  card foto + contatore "01 / 06" + nome su due righe (prima riga rossa).
+- Tenere tutto il testo sopra y=1490 (zona pulsanti Instagram in 9:16).
