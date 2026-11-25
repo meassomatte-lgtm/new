@@ -47,3 +47,5 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
 - Effetti sonori: l'utente NON vuole piatti/crash ("scing"), boing, pop, campanelle, tastiera. Pochi suoni e morbidi:
   thud bassi leggeri sui titoli, sub morbido sui cambi di sezione, whoosh bassi (180->900 Hz, gain ~0.14).
   Il resto lo aggiunge lui in post-produzione.
+- Ritmo: l'utente vuole animazioni un filo più veloci di quelle di base: rise 0.42 beat (stagger 0.014),
+  molla "FAST" {stiffness 340, damping 17} per le entrate, whip 0.3 beat.

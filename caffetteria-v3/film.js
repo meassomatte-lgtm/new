@@ -5,41 +5,30 @@ import * as AERIAL from './aerial.js';
 
 const { W, H, E, prog, lerp, clamp, springU, SPRING, font, layout, glyph, text, fill, cover, rrect, hash01, mulberry32, wobble } = M;
 
-const C = { black: '#101010', paper: '#ECEAE6', red: '#C8322B', white: '#FFFFFF', ink: '#141414', grey: '#8D8A86', cream: '#F1E8D6' };
+const C = { black: '#101010', paper: '#ECEAE6', red: '#E07A2B', brown: '#5B3A24', white: '#FFFFFF', ink: '#141414', grey: '#8D8A86', cream: '#F1E8D6' };
 const SERIF = 'Serif', ITAL = 'Display', UI = 'UI', HEAVY = 'Heavy';
 
+// Sound: sober and sparse (no cymbals, no cartoon sounds; the user adds more in post)
 const HITS = [
-  [0, 'descent', 'whoosh', { len: 1.2, from: 200, to: 1200 }],
-  [1.5, 'PORDENONE', 'thud'],
-  [5, 'marker', 'thud'],
-  [6.5, 'brand', 'impact'],
-  [7.3, 'CAFFETTERIA', 'click'],
-  [8, 'd Arte', 'pop', { pitch: 'C6' }],
-  [9.5, 'aperti', 'whoosh', { len: 0.4 }],
-  [10, 'APERTI', 'thud'],
-  [12, 'lun-ven', 'click'],
-  [15.5, 'sabato', 'click'],
-  [17.5, 'domenica', 'click'],
-  [20, 'colazione', 'whoosh', { len: 0.4, from: 500, to: 2200 }],
-  [20.5, 'COLAZIONE', 'thud'],
-  [25.8, 'pranzo', 'whoosh', { len: 0.4, from: 2200, to: 500 }],
-  [26.2, 'PRANZO', 'thud'],
-  [29.4, 'aperitivo', 'whoosh', { len: 0.4, from: 500, to: 2200 }],
-  [29.8, 'APERITIVO', 'thud'],
-  [31.6, 'club card', 'click'],
-  [34.3, 'arte', 'whoosh', { len: 0.45 }],
-  [35, 'ARTE', 'click'], [36.5, 'LIBRI', 'click'], [38, 'INCONTRI', 'click'],
-  [39, 'phone', 'whoosh', { len: 0.5, from: 300, to: 1600 }],
-  [39.6, 'INSTAGRAM', 'thud'],
-  [42.2, 'tap', 'tick'],
-  [44, 'end', 'impact'],
-  [44.4, 'SEGUICI pill', 'pop', { pitch: 'F6' }],
+  [0, 'descent', 'whoosh', { len: 1.4, from: 120, to: 700, gain: 0.14 }],
+  [1.5, 'PORDENONE', 'thud', { gain: 0.2, pitch: 110, to: 45 }],
+  [5, 'marker', 'thud', { gain: 0.18, pitch: 120, to: 50 }],
+  [6.5, 'brand', 'sub', { len: 1.4, gain: 0.4 }],
+  [9.5, 'aperti', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [20, 'colazione', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [25.8, 'pranzo', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [29.4, 'aperitivo', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [34.3, 'arte', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [39, 'phone', 'whoosh', { len: 0.6, from: 180, to: 900, gain: 0.14 }],
+  [42.2, 'tap', 'tick', { gain: 0.12 }],
+  [44, 'end', 'sub', { len: 1.2, gain: 0.35 }],
 ];
 
+const FAST = { stiffness: 340, damping: 17 };   // entrances ~25% quicker than SPRING.bouncy
 // ================================================================ type + graphics kit
 const ease01 = (u, a, b, e = E.outQuint) => e(prog(u, a, b));
 // glyphs rise out of a mask line
-function rise(ctx, str, x, y, f, color, u, u0, { align = 'left', track = 0, stagger = 0.02, dur = 0.6 } = {}) {
+function rise(ctx, str, x, y, f, color, u, u0, { align = 'left', track = 0, stagger = 0.014, dur = 0.42 } = {}) {
   const L = layout(ctx, str, f, track);
   const x0 = align === 'center' ? x - L.width / 2 : align === 'right' ? x - L.width : x;
   ctx.save(); ctx.beginPath(); ctx.rect(0, y - L.asc - 60, W, L.asc + L.desc + 66); ctx.clip();
@@ -60,7 +49,7 @@ function slam(ctx, str, x, y, size, color, u, u0, { align = 'center', bar = null
     if (p > 0) { ctx.fillStyle = bar; ctx.fillRect(x0 - 24, y - L.asc - 18, (L.width + 48) * p, L.asc + L.desc + 36); }
   }
   L.glyphs.forEach((g, j) => {
-    const k = springU(u, u0 + j * 0.03, SPRING.bouncy);
+    const k = springU(u, u0 + j * 0.022, FAST);
     if (k <= 0) return;
     const s = 1.6 - 0.6 * k;
     ctx.save(); ctx.globalAlpha = clamp(k * 3);
@@ -78,8 +67,8 @@ function pair(ctx, small, big, y, u, u0, { dark = true, bar = false, maxW = W - 
   const sz = fitHeavy(ctx, big, maxW, max);
   const L = layout(ctx, big, font(sz, 900, HEAVY), -0.02 * sz);
   const x0 = align === 'center' ? x - L.width / 2 : x;
-  rise(ctx, small, x0 + 6, y - L.asc - 34, font(smallSize, 500, ITAL), dark ? C.white : C.ink, u, u0);
-  return slam(ctx, big, x, y, sz, bar ? C.white : C.red, u, u0 + 0.35, { align, bar: bar ? C.red : null });
+  rise(ctx, small, x0 + 6, y - L.asc - 34, font(smallSize, 500, ITAL), dark ? C.white : C.brown, u, u0);
+  return slam(ctx, big, x, y, sz, bar ? C.white : C.red, u, u0 + 0.25, { align, bar: bar ? C.red : null });
 }
 // thin swoosh curve drawn on
 function swoosh(ctx, u, u0, pts, color, w = 3, dur = 1.2) {
@@ -162,22 +151,22 @@ function logoDisc(ctx, IMG, x, y, r) {
   ctx.restore();
 }
 // photo card: white border, rounded, tilted, flies in from a side and keeps drifting
-function photoCard(ctx, img, u, u0, u1, cx, cy, w, h, { from = 1, rot = -0.04, fx0 = 0.4, fx1 = 0.6, fy = 0.5 } = {}) {
+function photoCard(ctx, img, u, u0, u1, cx, cy, w, h, { from = 1, rot = -0.04, fx0 = 0.4, fx1 = 0.6, fy = 0.5, edge = C.red } = {}) {
   if (!img) return;
-  const k = springU(u, u0 - 0.2, SPRING.snappy);
+  const k = springU(u, u0 - 0.2, { stiffness: 460, damping: 34 });
   const drift = prog(u, u0, u1);
   const x = cx + (1 - k) * from * (W + w) * 0.7, y = cy - drift * 30;
   const r = rot * k + (1 - k) * from * 0.25 + 0.01 * Math.sin(drift * Math.PI);
   ctx.save(); ctx.translate(x, y); ctx.rotate(r);
   ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 30;
-  rrect(ctx, -w / 2 - 14, -h / 2 - 14, w + 28, h + 28, 34); ctx.fillStyle = C.white; ctx.fill();
+  rrect(ctx, -w / 2 - 14, -h / 2 - 14, w + 28, h + 28, 34); ctx.fillStyle = edge; ctx.fill();
   ctx.shadowColor = 'transparent';
   const z = 1.04 * (1.14 / 1.04) ** E.inOutSine(drift);
   cover(ctx, img, -w / 2, -h / 2, w, h, { fx: lerp(fx0, fx1, drift), fy, zoom: z, radius: 22 });
   ctx.restore();
 }
 function pill(ctx, str, cx, cy, u, u0, { bg = C.red, fg = C.white, size = 40 } = {}) {
-  const k = springU(u, u0, SPRING.bouncy);
+  const k = springU(u, u0, FAST);
   if (k <= 0) return;
   const f = font(size, 800, UI); const L = layout(ctx, str, f, size * 0.12);
   const pw = L.width + size * 1.6, ph = size * 2;
@@ -259,7 +248,7 @@ function sceneMap(ctx, u) {
       ctx.save(); ctx.translate(PIN.x, by + bh); ctx.scale(lk, lk); ctx.translate(-PIN.x, -(by + bh));
       ctx.fillStyle = C.white; rrect(ctx, bx, by, bw, bh, 12); ctx.fill();
       ctx.fillStyle = C.red; rrect(ctx, bx, by, 18, bh, 12); ctx.fill(); ctx.fillRect(bx + 8, by, 10, bh);
-      text(ctx, 'Viale Marconi, 40', bx + 48, by + 66, font(52, 900, HEAVY), C.ink, 'left');
+      text(ctx, 'Viale Marconi, 40', bx + 48, by + 66, font(52, 900, HEAVY), C.brown, 'left');
       text(ctx, 'PORDENONE', bx + 48, by + 112, font(28, 700, UI), C.red, 'left', 8);
       ctx.restore();
     }
@@ -308,7 +297,7 @@ function sceneHours(ctx, u) {
     ctx.shadowColor = 'transparent';
     rrect(ctx, 30, y + 30, 26 + layout(ctx, r.tag, font(30, 800, UI), 4).width + 26, 52, 10); ctx.fillStyle = r.off ? C.grey : C.red; ctx.fill();
     text(ctx, r.tag, 56, y + 67, font(30, 800, UI), C.white, 'left', 4);
-    text(ctx, r.hrs, 34, y + 158, font(r.off ? 64 : 72, 900, r.off ? ITAL : HEAVY), r.off ? C.grey : C.ink, 'left', r.off ? 0 : -1);
+    text(ctx, r.hrs, 34, y + 158, font(r.off ? 64 : 72, 900, r.off ? ITAL : HEAVY), r.off ? C.grey : C.brown, 'left', r.off ? 0 : -1);
     ctx.restore();
   });
   ctx.restore();
@@ -325,7 +314,7 @@ function sceneColazione(ctx, u, IMG) {
 }
 function scenePranzo(ctx, u, IMG) {
   bgLight(ctx, u);
-  photoCard(ctx, IMG.pranzo, u, 25.8, 29.4, W / 2, 1060, 860, 760, { from: -1, rot: 0.03, fx0: 0.42, fx1: 0.55, fy: 0.6 });
+  photoCard(ctx, IMG.pranzo, u, 25.8, 29.4, W / 2, 1060, 860, 760, { from: -1, rot: 0.03, fx0: 0.42, fx1: 0.55, fy: 0.6, edge: C.brown });
   pair(ctx, 'A mezzogiorno', 'PRANZO VELOCE', 470, u, 25.9, { dark: false, max: 150 });
   swoosh(ctx, u, 26, [-40, 1500, 300, 1700, 800, 1400, W + 40, 1600], 'rgba(20,20,20,0.35)', 3);
 }
@@ -339,7 +328,7 @@ function sceneAperitivo(ctx, u, IMG) {
     const x = W - 210 + (1 - k) * 500, y = 1290;
     ctx.save(); ctx.translate(x, y); ctx.rotate(0.08);
     ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 20;
-    rrect(ctx, -w / 2 - 12, -h / 2 - 12, w + 24, h + 24, 20); ctx.fillStyle = C.white; ctx.fill(); ctx.shadowColor = 'transparent';
+    rrect(ctx, -w / 2 - 12, -h / 2 - 12, w + 24, h + 24, 20); ctx.fillStyle = C.brown; ctx.fill(); ctx.shadowColor = 'transparent';
     ctx.save(); rrect(ctx, -w / 2, -h / 2, w, h, 12); ctx.clip(); ctx.drawImage(IMG.club, -w / 2, -h / 2, w, h); ctx.restore();
     ctx.restore();
   }
@@ -364,7 +353,7 @@ function sceneArte(ctx, u, IMG) {
     ctx.drawImage(IMG.quadro, -w / 2, -h / 2, w, h);
     ctx.restore();
   }
-  rise(ctx, 'Un luogo di', 96, 1000, font(76, 500, ITAL), C.ink, u, 34.4);
+  rise(ctx, 'Un luogo di', 96, 1000, font(76, 500, ITAL), C.brown, u, 34.4);
   const words = [['ARTE', 35, 1150], ['LIBRI', 36.5, 1330], ['INCONTRI', 38, 1510]];
   words.forEach(([w, u0, y], i) => slam(ctx, w, 96, y, 170, i === 1 ? C.white : C.red, u, u0, { align: 'left', bar: i === 1 ? C.red : null }));
 }
@@ -403,7 +392,7 @@ function scenePhone(ctx, u, IMG) {
   bgDark(ctx, u);
   // big red disc behind the phone, like the reference's spotlight circles
   const dk = springU(u, 39, SPRING.gentle);
-  ctx.beginPath(); ctx.arc(W / 2, 1120, 470 * dk, 0, M.TAU); ctx.fillStyle = 'rgba(200,50,43,0.9)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(W / 2, 1120, 470 * dk, 0, M.TAU); ctx.fillStyle = 'rgba(224,122,43,0.92)'; ctx.fill();
   swoosh(ctx, u, 39.2, [-40, 1250, 300, 900, 760, 1500, W + 40, 1000], 'rgba(255,255,255,0.7)', 3);
   pair(ctx, 'Seguiteci su', 'INSTAGRAM', 420, u, 39.2, { max: 200 });
   rise(ctx, '@caffetteriadarte', W / 2, 520, font(52, 700, UI), C.white, u, 40.2, { align: 'center', stagger: 0.012 });
@@ -421,7 +410,7 @@ function scenePhone(ctx, u, IMG) {
   const tp = prog(u, 42.2, 43.2);
   if (tp > 0 && tp < 1) {
     ctx.beginPath(); ctx.arc(fx, fy, 24 + tp * 70, 0, M.TAU); ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - tp)})`; ctx.lineWidth = 5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(fx, fy, 22 * (1 - tp * 0.4), 0, M.TAU); ctx.fillStyle = `rgba(200,50,43,${0.6 * (1 - tp)})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(fx, fy, 22 * (1 - tp * 0.4), 0, M.TAU); ctx.fillStyle = `rgba(91,58,36,${0.6 * (1 - tp)})`; ctx.fill();
   }
   ctx.restore();
 }
@@ -434,19 +423,19 @@ function sceneEnd(ctx, u, IMG) {
   const k = springU(u, 43.65, SPRING.bouncy);
   if (k > 0) {
     ctx.save(); ctx.translate(W / 2, 780); ctx.rotate((1 - k) * 0.8); ctx.translate(-W / 2, -780);
-    ctx.beginPath(); ctx.arc(W / 2, 780, 210 * k + 12, 0, M.TAU); ctx.fillStyle = C.ink; ctx.fill();
+    ctx.beginPath(); ctx.arc(W / 2, 780, 210 * k + 12, 0, M.TAU); ctx.fillStyle = C.brown; ctx.fill();
     logoDisc(ctx, IMG, W / 2, 780, 210 * k);
     ctx.restore();
   }
   pair(ctx, 'Vi', 'ASPETTIAMO', 1230, u, 44.5, { dark: false, max: 170 });
-  rise(ctx, 'Viale Marconi 40 · Pordenone', W / 2, 1330, font(40, 600, UI), C.ink, u, 45.2, { align: 'center', stagger: 0.008 });
+  rise(ctx, 'Viale Marconi 40 · Pordenone', W / 2, 1330, font(40, 600, UI), C.brown, u, 45.2, { align: 'center', stagger: 0.008 });
   rise(ctx, 'Lun–Ven 7:00–20:30  ·  Sab 8:00–15:00', W / 2, 1395, font(34, 500, UI), C.grey, u, 45.5, { align: 'center', stagger: 0.006 });
   rise(ctx, '@caffetteriadarte', W / 2, 1470, font(44, 800, UI), C.red, u, 45.8, { align: 'center', stagger: 0.008 });
 }
 
 // ================================================================ transitions + post
 // whip: A slides out left as B slides in from the right, both on screen, done on the cut
-function whip(ctx, u, uc, drawA, drawB, dir = 1, dur = 0.4) {
+function whip(ctx, u, uc, drawA, drawB, dir = 1, dur = 0.3) {
   const p = E.inOutCubic(prog(u, uc - dur, uc));
   if (p <= 0) { drawA(); return; }
   if (p >= 1) { drawB(); return; }
