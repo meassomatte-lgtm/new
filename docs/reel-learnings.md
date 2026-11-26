@@ -49,3 +49,6 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
   Il resto lo aggiunge lui in post-produzione.
 - Ritmo: l'utente vuole animazioni un filo più veloci di quelle di base: rise 0.42 beat (stagger 0.014),
   molla "FAST" {stiffness 340, damping 17} per le entrate, whip 0.3 beat.
+- Video per il profilo personale @measso.mex: in coda sempre l'outro personale/outro/seguimi-measso-mex-9x16.mp4
+  (regola anche in CLAUDE.md). Mai sui video dei clienti.
+- Audio degli inserti brevi senza musica: NON passarli nel master -14 LUFS (alza troppo gli effetti); usare sfx.wav a volume naturale.
