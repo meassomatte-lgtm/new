@@ -52,3 +52,9 @@ Fonti: ogni file modello che l'utente invia + le sue correzioni.
 - Video per il profilo personale @measso.mex: in coda sempre l'outro personale/outro/seguimi-measso-mex-9x16.mp4
   (regola anche in CLAUDE.md). Mai sui video dei clienti.
 - Audio degli inserti brevi senza musica: NON passarli nel master -14 LUFS (alza troppo gli effetti); usare sfx.wav a volume naturale.
+
+## Reel Rorai Grande (associazione di basket)
+- Dati presi solo dalla locandina ufficiale nel loro profilo (categorie/anni, PalaRorai via Maggiore, Serie D, contatti).
+- Minori: niente primi piani dei ragazzi presi dal profilo finché l'associazione non fornisce il materiale.
+- Colori dal logo: blu notte #0A1733, blu R #2447A6, giallo pallone #F0A82A. Logo che ruota come moneta (scala X = cos).
+- Ogni taglio deve mostrare qualcosa al primo fotogramma: far partire gli elementi 0.2-0.4 s prima del taglio.
