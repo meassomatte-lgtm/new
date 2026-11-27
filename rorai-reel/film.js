@@ -106,10 +106,24 @@ function card(ctx, img, x, y, w, h, rot, { fx = 0.5, fy = 0.5, zoom = 1, edge = 
   ctx.restore();
 }
 
+// real footage (assets/video/A = empty court with the painted R, B = youth team huddle), 24 fps frames
+function clip(ctx, IMG, key, n, t, t0, speed = 1, { zoom = 1, fy = 0.5 } = {}) {
+  const i = Math.max(1, Math.min(n, Math.floor((t - t0) * 24 * speed) + 1));
+  const img = IMG[key + i];
+  if (img) cover(ctx, img, 0, 0, W, H, { fx: 0.5, fy, zoom });
+}
 // ---------------------------------------------------------------- scenes
 function sLogo(ctx, t, IMG) {
-  bgNavy(ctx, t);
-  badge(ctx, IMG, W / 2, 1060, 330, t, -0.35, 1.5);
+  fill(ctx, C.navy);
+  // the PalaRorai court with the R painted at centre: the badge spins up out of it
+  const z = 1.0 * (1.12 / 1.0) ** E.inOutSine(prog(t, 0, 2.3));
+  ctx.save(); ctx.translate(W / 2, 1020); ctx.scale(z, z); ctx.translate(-W / 2, -1020);
+  clip(ctx, IMG, 'A', 71, t, 0, 1);
+  ctx.restore();
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(10,23,51,0.88)'); g.addColorStop(0.35, 'rgba(10,23,51,0.35)'); g.addColorStop(1, 'rgba(10,23,51,0.6)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  badge(ctx, IMG, W / 2, 1020, 300, t, 0.55, 1.5);
   pair(ctx, 'Questa è', 'RORAI GRANDE', 520, t, 0.15, { max: 160 });
 }
 const CATS = [['PULCINI', '2020–21'], ['SCOIATTOLI', '2018–19'], ['AQUILOTTI', '2016–17'], ['ESORDIENTI', '2015']];
@@ -135,9 +149,9 @@ function sMini(ctx, t, IMG) {
 }
 function sGiov(ctx, t, IMG) {
   fill(ctx, C.navy);
-  ctx.save(); ctx.filter = 'blur(3px) brightness(0.55) saturate(0.9)';
-  const z = 1.15 * (1.3 / 1.15) ** E.inOutSine(prog(t, 7.2, 12.8));
-  cover(ctx, IMG.partita, 0, 0, W, H, { fx: lerp(0.25, 0.6, prog(t, 7.2, 12.8)), fy: 0.55, zoom: z });
+  // the youth team on court (real footage, slowed to fill the scene), slow push-in
+  ctx.save(); ctx.filter = 'brightness(0.7) saturate(1.05)';
+  clip(ctx, IMG, 'B', 104, t, 7.1, 0.78, { zoom: 1.0 * (1.1 / 1.0) ** E.inOutSine(prog(t, 7.2, 12.8)), fy: 0.55 });
   ctx.restore();
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(10,23,51,0.85)'); g.addColorStop(0.5, 'rgba(10,23,51,0.35)'); g.addColorStop(1, 'rgba(10,23,51,0.9)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -176,6 +190,7 @@ function sFam(ctx, t, IMG) {
   badge(ctx, IMG, W / 2, 1000, 200, t, 14.55, 1);
   pair(ctx, 'Un’unica', 'FAMIGLIA', 560, t, 14.7, { smallCol: C.navy, bigCol: C.navy, max: 240 });
   pill(ctx, 'PALARORAI · VIA MAGGIORE', W / 2, 1360, t, 16.3, { bg: C.navy, fg: C.white, size: 40 });
+  rise(ctx, 'DAL 1990', W / 2, 1270, font(40, 800, UI), C.navy, t, 16.0, { align: 'center', track: 10 });
 }
 function sCta(ctx, t, IMG) {
   bgNavy(ctx, t);
@@ -204,7 +219,10 @@ function makeGrain() {
 
 M.film({
   fonts: [font(100, 900, HEAVY), font(100, 500, ITAL), font(40, 600, UI), font(40, 800, UI)],
-  images: { logo: 'assets/logo.png', partita: 'assets/partita.png', locandina: 'assets/locandina.png', prima: 'assets/prima_squadra.jpg' },
+  images: { logo: 'assets/logo.png', partita: 'assets/partita.png', locandina: 'assets/locandina.png', prima: 'assets/prima_squadra.jpg',
+    ...Object.fromEntries(Array.from({ length: 71 }, (_, i) => ['A' + (i + 1), `assets/video/A/f${String(i + 1).padStart(3, '0')}.jpg`])),
+    ...Object.fromEntries(Array.from({ length: 104 }, (_, i) => ['B' + (i + 1), `assets/video/B/f${String(i + 1).padStart(3, '0')}.jpg`])),
+  },
   hits: HITS,
   init() { GRAIN = makeGrain(); },
   draw(ctx, u, t, IMG) {
