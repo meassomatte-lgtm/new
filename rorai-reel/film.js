@@ -10,17 +10,17 @@ const sp = (t, t0, cfg = FAST) => spring(t - t0, cfg);
 const U = (t) => t / 0.5;   // seconds -> beats on the 120 bpm grid (offset ~0)
 
 // cut points (s)
-const CUT = { mini: 2.2, giov: 6.95, prima: 12.2, fam: 14.9, cta: 17.9 };
+const CUT = { mini: 2.25, giov: 7.25, prima: 12.7, fam: 14.9, cta: 18.0 };
 
 const HITS = [
   [U(0.1), 'logo spin', 'whoosh', { len: 0.8, from: 150, to: 900, gain: 0.16 }],
   [U(0.9), 'RORAI GRANDE', 'thud', { gain: 0.22, pitch: 110, to: 45 }],
   [U(2.2), 'minibasket', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
-  [U(6.95), 'giovanile', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
-  [U(12.2), 'prima squadra', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
-  [U(13.4), 'serie D', 'thud', { gain: 0.2, pitch: 110, to: 45 }],
+  [U(7.25), 'giovanile', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
+  [U(12.7), 'prima squadra', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
+  [U(13.8), 'DR2', 'thud', { gain: 0.2, pitch: 110, to: 45 }],
   [U(14.9), 'famiglia', 'sub', { len: 1.2, gain: 0.35 }],
-  [U(17.9), 'cta', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
+  [U(18.0), 'cta', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
 ];
 
 // ---------------------------------------------------------------- kit (seconds)
@@ -131,21 +131,21 @@ function sMini(ctx, t, IMG) {
     text(ctx, 'nati ' + y, 40, yy + 48, font(33, 700, UI), C.yellow, 'left', 2);
     ctx.restore();
   });
-  rise(ctx, 'Il primo canestro non si scorda mai.', W / 2, 1420, font(52, 500, ITAL), C.white, t, 4.45, { align: 'center', stagger: 0.008 });
+  rise(ctx, 'Il primo canestro non si scorda mai.', W / 2, 1420, font(52, 500, ITAL), C.white, t, 4.6, { align: 'center', stagger: 0.008 });
 }
 function sGiov(ctx, t, IMG) {
   fill(ctx, C.navy);
   ctx.save(); ctx.filter = 'blur(3px) brightness(0.55) saturate(0.9)';
-  const z = 1.15 * (1.3 / 1.15) ** E.inOutSine(prog(t, 6.9, 12.3));
-  cover(ctx, IMG.partita, 0, 0, W, H, { fx: lerp(0.25, 0.6, prog(t, 6.9, 12.3)), fy: 0.55, zoom: z });
+  const z = 1.15 * (1.3 / 1.15) ** E.inOutSine(prog(t, 7.2, 12.8));
+  cover(ctx, IMG.partita, 0, 0, W, H, { fx: lerp(0.25, 0.6, prog(t, 7.2, 12.8)), fy: 0.55, zoom: z });
   ctx.restore();
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(10,23,51,0.85)'); g.addColorStop(0.5, 'rgba(10,23,51,0.35)'); g.addColorStop(1, 'rgba(10,23,51,0.9)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  rise(ctx, 'Il', 110, 330, font(72, 500, ITAL), C.white, t, 6.8);
-  slam(ctx, 'SETTORE', 90, 500, fit(ctx, 'GIOVANILE', W - 180, 210), C.white, t, 6.85, { align: 'left' });
-  slam(ctx, 'GIOVANILE', 90, 690, fit(ctx, 'GIOVANILE', W - 180, 210), C.yellow, t, 7.1, { align: 'left' });
+  rise(ctx, 'Il', 110, 330, font(72, 500, ITAL), C.white, t, 7.1);
+  slam(ctx, 'SETTORE', 90, 500, fit(ctx, 'GIOVANILE', W - 180, 210), C.white, t, 7.15, { align: 'left' });
+  slam(ctx, 'GIOVANILE', 90, 690, fit(ctx, 'GIOVANILE', W - 180, 210), C.yellow, t, 7.4, { align: 'left' });
   ['U13', 'U14', 'U15', 'U17'].forEach((n, i) => {
-    const t0 = 8.3 + i * 0.4, k = sp(t, t0);
+    const t0 = 8.6 + i * 0.4, k = sp(t, t0);
     if (k <= 0) return;
     const cx = 200 + i * 226, cy = 960;
     ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k);
@@ -153,16 +153,16 @@ function sGiov(ctx, t, IMG) {
     text(ctx, n, 0, 22, font(64, 900, HEAVY), i % 2 ? C.white : C.navy, 'center');
     ctx.restore();
   });
-  rise(ctx, 'qui si cresce', W / 2, 1260, font(80, 500, ITAL), C.white, t, 10.6, { align: 'center' });
-  slam(ctx, 'INSIEME', W / 2, 1420, 150, C.navy, t, 10.85, { bar: C.yellow });
+  rise(ctx, 'qui si cresce', W / 2, 1260, font(80, 500, ITAL), C.white, t, 11.05, { align: 'center' });
+  slam(ctx, 'INSIEME', W / 2, 1420, 150, C.navy, t, 11.35, { bar: C.yellow });
 }
 function sPrima(ctx, t, IMG) {
   bgNavy(ctx, t);
-  const k = sp(t, 12.15, { stiffness: 260, damping: 24 });
-  card(ctx, IMG.partita, W / 2 + (1 - k) * W, 980, 900, 560, -0.03 * k, { fx: lerp(0.3, 0.6, prog(t, 12.2, 15)), fy: 0.6, zoom: 1.1 });
-  rise(ctx, 'E la', 110, 330, font(72, 500, ITAL), C.white, t, 12.25);
-  slam(ctx, 'PRIMA SQUADRA', W / 2, 520, fit(ctx, 'PRIMA SQUADRA', W - 160, 170), C.yellow, t, 12.4);
-  pill(ctx, 'SERIE D REGIONALE', W / 2, 1400, t, 13.35, { size: 46 });
+  const k = sp(t, 12.65, { stiffness: 260, damping: 24 });
+  card(ctx, IMG.prima, W / 2 + (1 - k) * W, 960, 960, 640, -0.025 * k, { fx: 0.5, fy: 0.5, zoom: 1.0 + 0.05 * prog(t, 12.7, 15) });
+  rise(ctx, 'E la', 110, 330, font(72, 500, ITAL), C.white, t, 12.75);
+  slam(ctx, 'PRIMA SQUADRA', W / 2, 520, fit(ctx, 'PRIMA SQUADRA', W - 160, 170), C.yellow, t, 12.9);
+  pill(ctx, 'IN DR2', W / 2, 1420, t, 13.75, { size: 52 });
 }
 function sFam(ctx, t, IMG) {
   fill(ctx, C.yellow);
@@ -179,9 +179,9 @@ function sFam(ctx, t, IMG) {
 }
 function sCta(ctx, t, IMG) {
   bgNavy(ctx, t);
-  pair(ctx, 'Vieni a', 'PROVARE!', 460, t, 17.7, { max: 230 });
-  badge(ctx, IMG, W / 2, 800, 190, t, 17.6, 1);
-  pill(ctx, '@asd_roraigrande', W / 2, 1110, t, 18.7, { size: 46 });
+  pair(ctx, 'Vieni a', 'PROVARE!', 460, t, 17.8, { max: 230 });
+  badge(ctx, IMG, W / 2, 800, 190, t, 17.7, 1);
+  pill(ctx, '@asd_roraigrande', W / 2, 1110, t, 19.0, { size: 46 });
   rise(ctx, 'PER INFO', W / 2, 1250, font(30, 800, UI), C.yellow, t, 20.0, { align: 'center', track: 8 });
   rise(ctx, '333 2116124  ·  333 7834586', W / 2, 1320, font(44, 700, UI), C.white, t, 20.2, { align: 'center', stagger: 0.006 });
   rise(ctx, 'roraigrande@gmail.com', W / 2, 1385, font(40, 500, UI), C.cream, t, 20.5, { align: 'center', stagger: 0.006 });
@@ -204,7 +204,7 @@ function makeGrain() {
 
 M.film({
   fonts: [font(100, 900, HEAVY), font(100, 500, ITAL), font(40, 600, UI), font(40, 800, UI)],
-  images: { logo: 'assets/logo.png', partita: 'assets/partita.png', locandina: 'assets/locandina.png' },
+  images: { logo: 'assets/logo.png', partita: 'assets/partita.png', locandina: 'assets/locandina.png', prima: 'assets/prima_squadra.jpg' },
   hits: HITS,
   init() { GRAIN = makeGrain(); },
   draw(ctx, u, t, IMG) {
