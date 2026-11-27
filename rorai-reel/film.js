@@ -10,17 +10,17 @@ const sp = (t, t0, cfg = FAST) => spring(t - t0, cfg);
 const U = (t) => t / 0.5;   // seconds -> beats on the 120 bpm grid (offset ~0)
 
 // cut points (s)
-const CUT = { mini: 2.25, giov: 7.25, prima: 12.7, fam: 14.9, cta: 18.0 };
+const CUT = { mini: 2.25, giov: 7.15, prima: 12.45, fam: 14.65, cta: 17.7 };
 
 const HITS = [
   [U(0.1), 'logo spin', 'whoosh', { len: 0.8, from: 150, to: 900, gain: 0.16 }],
   [U(0.9), 'RORAI GRANDE', 'thud', { gain: 0.22, pitch: 110, to: 45 }],
   [U(2.2), 'minibasket', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
-  [U(7.25), 'giovanile', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
-  [U(12.7), 'prima squadra', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
-  [U(13.8), 'DR2', 'thud', { gain: 0.2, pitch: 110, to: 45 }],
-  [U(14.9), 'famiglia', 'sub', { len: 1.2, gain: 0.35 }],
-  [U(18.0), 'cta', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
+  [U(7.15), 'giovanile', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
+  [U(12.45), 'prima squadra', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
+  [U(13.65), 'DR2', 'thud', { gain: 0.2, pitch: 110, to: 45 }],
+  [U(14.65), 'famiglia', 'sub', { len: 1.2, gain: 0.35 }],
+  [U(17.7), 'cta', 'whoosh', { len: 0.5, from: 180, to: 900, gain: 0.14 }],
 ];
 
 // ---------------------------------------------------------------- kit (seconds)
@@ -112,6 +112,7 @@ function clip(ctx, IMG, key, n, t, t0, speed = 1, { zoom = 1, fy = 0.5 } = {}) {
   const img = IMG[key + i];
   if (img) cover(ctx, img, 0, 0, W, H, { fx: 0.5, fy, zoom });
 }
+let GIOV_U0 = 8.6;   // first age circle, on 'dall'Under 13'
 // ---------------------------------------------------------------- scenes
 function sLogo(ctx, t, IMG) {
   fill(ctx, C.navy);
@@ -155,28 +156,28 @@ function sGiov(ctx, t, IMG) {
   ctx.restore();
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(10,23,51,0.85)'); g.addColorStop(0.5, 'rgba(10,23,51,0.35)'); g.addColorStop(1, 'rgba(10,23,51,0.9)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  rise(ctx, 'Il', 110, 330, font(72, 500, ITAL), C.white, t, 7.1);
-  slam(ctx, 'SETTORE', 90, 500, fit(ctx, 'GIOVANILE', W - 180, 210), C.white, t, 7.15, { align: 'left' });
-  slam(ctx, 'GIOVANILE', 90, 690, fit(ctx, 'GIOVANILE', W - 180, 210), C.yellow, t, 7.4, { align: 'left' });
-  ['U13', 'U14', 'U15', 'U17'].forEach((n, i) => {
-    const t0 = 8.6 + i * 0.4, k = sp(t, t0);
+  rise(ctx, 'Il', 110, 330, font(72, 500, ITAL), C.white, t, 7.0);
+  slam(ctx, 'SETTORE', 90, 500, fit(ctx, 'GIOVANILE', W - 180, 210), C.white, t, 7.05, { align: 'left' });
+  slam(ctx, 'GIOVANILE', 90, 690, fit(ctx, 'GIOVANILE', W - 180, 210), C.yellow, t, 7.3, { align: 'left' });
+  ['U13', 'U14', 'U15', 'U17', 'U19'].forEach((n, i) => {
+    const t0 = GIOV_U0 + i * 0.32, k = sp(t, t0);
     if (k <= 0) return;
-    const cx = 200 + i * 226, cy = 960;
+    const cx = 152 + i * 194, cy = 960;
     ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k);
-    ctx.beginPath(); ctx.arc(0, 0, 96, 0, M.TAU); ctx.fillStyle = i % 2 ? C.blue : C.yellow; ctx.fill();
-    text(ctx, n, 0, 22, font(64, 900, HEAVY), i % 2 ? C.white : C.navy, 'center');
+    ctx.beginPath(); ctx.arc(0, 0, 84, 0, M.TAU); ctx.fillStyle = i % 2 ? C.blue : C.yellow; ctx.fill();
+    text(ctx, n, 0, 20, font(56, 900, HEAVY), i % 2 ? C.white : C.navy, 'center');
     ctx.restore();
   });
-  rise(ctx, 'qui si cresce', W / 2, 1260, font(80, 500, ITAL), C.white, t, 11.05, { align: 'center' });
-  slam(ctx, 'INSIEME', W / 2, 1420, 150, C.navy, t, 11.35, { bar: C.yellow });
+  rise(ctx, 'qui si cresce', W / 2, 1260, font(80, 500, ITAL), C.white, t, 10.85, { align: 'center' });
+  slam(ctx, 'INSIEME', W / 2, 1420, 150, C.navy, t, 11.15, { bar: C.yellow });
 }
 function sPrima(ctx, t, IMG) {
   bgNavy(ctx, t);
-  const k = sp(t, 12.65, { stiffness: 260, damping: 24 });
-  card(ctx, IMG.prima, W / 2 + (1 - k) * W, 960, 960, 640, -0.025 * k, { fx: 0.5, fy: 0.5, zoom: 1.0 + 0.05 * prog(t, 12.7, 15) });
-  rise(ctx, 'E la', 110, 330, font(72, 500, ITAL), C.white, t, 12.75);
-  slam(ctx, 'PRIMA SQUADRA', W / 2, 520, fit(ctx, 'PRIMA SQUADRA', W - 160, 170), C.yellow, t, 12.9);
-  pill(ctx, 'IN DR2', W / 2, 1420, t, 13.75, { size: 52 });
+  const k = sp(t, 12.4, { stiffness: 260, damping: 24 });
+  card(ctx, IMG.prima, W / 2 + (1 - k) * W, 960, 960, 640, -0.025 * k, { fx: 0.5, fy: 0.5, zoom: 1.0 + 0.05 * prog(t, 12.45, 14.7) });
+  rise(ctx, 'E la', 110, 330, font(72, 500, ITAL), C.white, t, 12.5);
+  slam(ctx, 'PRIMA SQUADRA', W / 2, 520, fit(ctx, 'PRIMA SQUADRA', W - 160, 170), C.yellow, t, 12.65);
+  pill(ctx, 'IN DR2', W / 2, 1420, t, 13.6, { size: 52 });
 }
 function sFam(ctx, t, IMG) {
   fill(ctx, C.yellow);
@@ -187,16 +188,16 @@ function sFam(ctx, t, IMG) {
   ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(-200, H / 2, 700, 1200, 0, -0.9, 0.9); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(W + 200, H / 2, 700, 1200, 0, Math.PI - 0.9, Math.PI + 0.9); ctx.stroke();
-  badge(ctx, IMG, W / 2, 1000, 200, t, 14.55, 1);
-  pair(ctx, 'Un’unica', 'FAMIGLIA', 560, t, 14.7, { smallCol: C.navy, bigCol: C.navy, max: 240 });
-  pill(ctx, 'PALARORAI · VIA MAGGIORE', W / 2, 1360, t, 16.3, { bg: C.navy, fg: C.white, size: 40 });
-  rise(ctx, 'DAL 1990', W / 2, 1270, font(40, 800, UI), C.navy, t, 16.0, { align: 'center', track: 10 });
+  badge(ctx, IMG, W / 2, 1000, 200, t, 14.35, 1);
+  pair(ctx, 'Un’unica', 'FAMIGLIA', 560, t, 14.5, { smallCol: C.navy, bigCol: C.navy, max: 240 });
+  pill(ctx, 'PALARORAI · VIA MAGGIORE', W / 2, 1360, t, 16.1, { bg: C.navy, fg: C.white, size: 40 });
+  rise(ctx, 'DAL 1990', W / 2, 1270, font(40, 800, UI), C.navy, t, 15.8, { align: 'center', track: 10 });
 }
 function sCta(ctx, t, IMG) {
   bgNavy(ctx, t);
-  pair(ctx, 'Vieni a', 'PROVARE!', 460, t, 17.8, { max: 230 });
-  badge(ctx, IMG, W / 2, 800, 190, t, 17.7, 1);
-  pill(ctx, '@asd_roraigrande', W / 2, 1110, t, 19.0, { size: 46 });
+  pair(ctx, 'Vieni a', 'PROVARE!', 460, t, 17.5, { max: 230 });
+  badge(ctx, IMG, W / 2, 800, 190, t, 17.4, 1);
+  pill(ctx, '@asd_roraigrande', W / 2, 1110, t, 18.8, { size: 46 });
   rise(ctx, 'PER INFO', W / 2, 1250, font(30, 800, UI), C.yellow, t, 20.0, { align: 'center', track: 8 });
   rise(ctx, '333 2116124  ·  333 7834586', W / 2, 1320, font(44, 700, UI), C.white, t, 20.2, { align: 'center', stagger: 0.006 });
   rise(ctx, 'roraigrande@gmail.com', W / 2, 1385, font(40, 500, UI), C.cream, t, 20.5, { align: 'center', stagger: 0.006 });
